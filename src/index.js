@@ -51,10 +51,7 @@ app.post("/", upload.single("69420"), async (req, res) => {
     if (banned) {
       //sprawdzanie czy uzytkownik jest zbanowany
       res.status(403);
-      fs.rmSync(path.join(__dirname + "/temp/"), {
-        recursive: true,
-        force: true,
-      });
+      fsExtra.emptyDirSync(__dirname+"/temp");
       return res.json({ error: `You are blacklisted for: <reason>` });
     }
 
@@ -92,26 +89,26 @@ app.post("/", upload.single("69420"), async (req, res) => {
     
     console.log(fileNameMethod);
     if (fileNameMethod == "normal") {
-      var realFileName = randomString();
-      var Alias = realFileName + fileType
-      var url = ("https://" + domain + "/" + Alias)
+      var realFileName = randomString()+fileType;
+      var Alias = realFileName
+      var url = ("http://" + domain + "/" + Alias)
     }
     else if (fileNameMethod == "invisible") {
       var realFileName = randomString();
       var realFileName = (realFileName+fileType)
       var Alias = invisibleString();
-      var url = ("https://" + domain + "/" + Alias)
+      var url = ("http://" + domain + "/" + Alias)
     }
-    else if (fileNameMethod == "invisible") {
+    else if (fileNameMethod == "emoji") {
       var realFileName = randomString();
       var realFileName = (realFileName+fileType)
       var Alias = emojiString();
-      var url = ("https://" + domain + "/" + Alias)
+      let url = ("http://" + domain + "/" + Alias)
     }
 
     // przeniesienie pliku z /temp do /content folder
     const oldPath = path.join(__dirname + "/temp/" + file.filename);
-    const newPath = path.join(__dirname + "/contentfolder/" + realFileName + fileType);
+    const newPath = path.join(__dirname + "/contentfolder/" + realFileName);
     fs.rename(oldPath, newPath, () => {});
     // tutaj
     await prisma.files.create({
@@ -126,6 +123,7 @@ app.post("/", upload.single("69420"), async (req, res) => {
         embedTitle: embedTitle,
         embedDesc: embedDesc,
         embedColor: embedColor,
+        uploadDate: (Date.now().toString()),
       },
     });
     return res.status(201).json({ url: url });
@@ -169,12 +167,19 @@ function emojiString() {
 
 
 
-app.get("/:params", (req, res) => {
+app.get("/:params", async (req, res) => {
   content = req.params.params;
-  res.send(`
+  let data = await prisma.files.findFirst({
+    where: {
+      alias: content,
+    },
+  });
+  console.log(data)
+  if (data) {
+    res.send(`
     <head>
         <meta name="theme-color" content="#ae34eb">
-        <meta property="og:image" content="/content/${content}">
+        <meta property="og:image" content="/content/${(data.fileName)}">
         <meta property="og:title" content="69420.host">
         <meta property="og:description" content="69420.host is the best">
         <meta property="og:url" content="https://69420.host">
@@ -185,13 +190,38 @@ app.get("/:params", (req, res) => {
     <body>
         <center>
           <div>
-            <p>${content}</p>
-            <img src="/content/${content}">
+            <p>${(data.fileName)} | uploaded by ${(data.owner)}</p>
+            <img src=/content/${(data.fileName)}>
           </div>
         </cetner>
     </body>
-    `);
+    `)
+    return;;
+  }else{
+    res.send(`file not found!`)
+  }
+
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 app.get("/lol/e", async (req, res) => {
   const lol = "";
@@ -203,7 +233,7 @@ app.get("/lol/e", async (req, res) => {
   res.send(tokenExist);
 });
 
-app.use("/content", express.static(__dirname + "\\contentfolder"));
+app.use("/content", express.static(__dirname + "/contentfolder"));
 app.use(function (req, res, next) {
   res.removeHeader("X-Powered-By"); // usuwa xpoweredby express
   next();

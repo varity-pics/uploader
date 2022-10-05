@@ -45,4 +45,5 @@ model files {
   embedDesc     String?
   embedSiteName String?
   embedTitle    String?
+  uploadDate    String
 }
