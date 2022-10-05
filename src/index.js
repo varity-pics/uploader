@@ -2,8 +2,9 @@ const fileUpload = require("express-fileupload");
 const path = require("path");
 const multer = require("multer");
 const db = require("@prisma/client");
+const fsExtra = require('fs-extra');
 
-const upload = multer({ dest: __dirname + "/temp/" });
+const upload = multer({ dest: __dirname + "/temp" });
 
 //const PrismaClient = require("@prisma/client")
 const fs = require("fs");
@@ -29,24 +30,22 @@ app.listen(port, () => {
 app.post("/", upload.single("69420"), async (req, res) => {
   // wypisuje nazwe oraz typ pliku
   //try {
-    console.log(req.file.originalname, req.file.mimetype);
+    const file = req.file
+    console.log(file.originalname, file.mimetype);
     let token = req.headers.authorization;
-    const tokenExist = await prisma.accounts.findFirst({
+    const data = await prisma.accounts.findFirst({
       where: {
         token: token,
       },
     });
     ////////res.send(tokenExist);
-    console.log(tokenExist);
-    if (!tokenExist) {
-      // tutaj jest sprawdzany token
-      // fs.rmSync(path.join(__dirname + "/temp/"), {
-      //   recursive: true,
-      //   force: true,
-      // });
-      res.status(401).json({ error: "Your upload token invalid." }); // zwraca ze token jest zly!
+    console.log(data);
+    if (!data) {
+      res.status(401).json({ error: "Your upload token invalid." });
+      fsExtra.emptyDirSync(__dirname+"/temp");
       return;
     }
+    console.log("dupa")
     const banned = false;
 
     if (banned) {
@@ -56,15 +55,10 @@ app.post("/", upload.single("69420"), async (req, res) => {
         recursive: true,
         force: true,
       });
-      res.json({ error: `You are blacklisted for: <reason>` });
-      return;
+      return res.json({ error: `You are blacklisted for: <reason>` });
     }
-    const data = await prisma.accounts.findFirst({
-      where: {
-        token: token,
-      },
-    });
-    console.log(data); // i to juz jest prased json
+
+    //console.log(data); // i to juz jest prased json
 
     const fileNameMethod = data.fileNameMethod;
     const username = data.username;
@@ -75,7 +69,6 @@ app.post("/", upload.single("69420"), async (req, res) => {
     const embedSiteName = data.embedSiteName;
     const embedTitle = data.embedTitle;
 
-    const file = req.file;
 
     //if (fileNameMethod == ("normal"))
 
@@ -91,20 +84,29 @@ app.post("/", upload.single("69420"), async (req, res) => {
     } else if (req.file.mimetype == "video/mp4") {
       var fileType = ".mp4";
     } else {
-      return res.status(415).json({ error: "Unsupported media type" }); // gdy plik nie jest wspierany wywala error
+      return res.status(415).json({ error: "Not supported media type" }); // gdy plik nie jest wspierany wywala error
     }
     // u+200b i u+200c
     // generowanie randomowego ciagu znakow
 
-    var realFileName = randomString();
+    
     console.log(fileNameMethod);
     if (fileNameMethod == "normal") {
-      var alias = realFileName + fileType
-      var url = ("https://" + domain + "/" + alias)
+      var realFileName = randomString();
+      var Alias = realFileName + fileType
+      var url = ("https://" + domain + "/" + Alias)
     }
     else if (fileNameMethod == "invisible") {
-      var alias = invisibleString();
-      var url = ("https://" + domain + "/" + alias)
+      var realFileName = randomString();
+      var realFileName = (realFileName+fileType)
+      var Alias = invisibleString();
+      var url = ("https://" + domain + "/" + Alias)
+    }
+    else if (fileNameMethod == "invisible") {
+      var realFileName = randomString();
+      var realFileName = (realFileName+fileType)
+      var Alias = emojiString();
+      var url = ("https://" + domain + "/" + Alias)
     }
 
     // przeniesienie pliku z /temp do /content folder
@@ -113,11 +115,12 @@ app.post("/", upload.single("69420"), async (req, res) => {
     fs.rename(oldPath, newPath, () => {});
     // tutaj
     await prisma.files.create({
-      data: {
-        fileName: alias,
+      data: 
+      {
+        fileName: realFileName,
         owner: username,
         ownerUid: data.uid,
-        alias: alias,
+        alias: Alias,
         embedAuthor: embedAuthor,
         embedSiteName: embedSiteName,
         embedTitle: embedTitle,
@@ -130,7 +133,7 @@ app.post("/", upload.single("69420"), async (req, res) => {
     return res.status(500).json({ error: "An unexpected error occurred" });
   }
 );
-
+// real filenames
 function randomString() {
   const randomArray = Array.from(
     { length: strlength },
@@ -140,6 +143,8 @@ function randomString() {
   return realFileName;
 }
 
+
+// invisible filenames
 function invisibleString() {
   const invisibleChars = "​‌";
   const randomArray = Array.from(
@@ -149,6 +154,20 @@ function invisibleString() {
   let invisibleFileName = randomArray.join("");
   return invisibleFileName;
 }
+
+
+// emoji filenames
+function emojiString() {
+  const emojiChars = "";
+  const randomArray = Array.from(
+    { length: 5 },
+    () => emojiChars[Math.floor(Math.random() * emojiChars.length)]
+  );
+  let emojiFileName = randomArray.join("");
+  return emojiFileName;
+}
+
+
 
 app.get("/:params", (req, res) => {
   content = req.params.params;
