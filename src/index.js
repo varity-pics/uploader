@@ -65,7 +65,7 @@ app.post("/", upload.single("69420"), async (req, res) => {
     const embedDesc = data.embedDesc;
     const embedSiteName = data.embedSiteName;
     const embedTitle = data.embedTitle;
-
+ 
 
     //if (fileNameMethod == ("normal"))
 
@@ -88,44 +88,49 @@ app.post("/", upload.single("69420"), async (req, res) => {
 
     
     console.log(fileNameMethod);
-    if (fileNameMethod == "normal") {
+    if (fileNameMethod === "normal") {
       var realFileName = randomString()+fileType;
       var Alias = realFileName
-      var url = ("http://" + domain + "/" + Alias)
+      var url = ("http://" + domain + "/u/" + Alias)
     }
-    else if (fileNameMethod == "invisible") {
+    else if (fileNameMethod === "invisible") {
       var realFileName = randomString();
       var realFileName = (realFileName+fileType)
       var Alias = invisibleString();
-      var url = ("http://" + domain + "/" + Alias)
+      var url = ("http://" + domain + "/u/" + Alias)
     }
-    else if (fileNameMethod == "emoji") {
+    else if (fileNameMethod === "emoji") {
       var realFileName = randomString();
       var realFileName = (realFileName+fileType)
       var Alias = emojiString();
-      let url = ("http://" + domain + "/" + Alias)
+      var url = ("http://" + domain + "/u/" + Alias)
     }
+    
 
     // przeniesienie pliku z /temp do /content folder
     const oldPath = path.join(__dirname + "/temp/" + file.filename);
     const newPath = path.join(__dirname + "/contentfolder/" + realFileName);
     fs.rename(oldPath, newPath, () => {});
     // tutaj
-    await prisma.files.create({
-      data: 
-      {
-        fileName: realFileName,
-        owner: username,
-        ownerUid: data.uid,
-        alias: Alias,
-        embedAuthor: embedAuthor,
-        embedSiteName: embedSiteName,
-        embedTitle: embedTitle,
-        embedDesc: embedDesc,
-        embedColor: embedColor,
-        uploadDate: (Date.now().toString()),
-      },
-    });
+    if (fileNameMethod === "normal" || fileNameMethod === "invisible"){
+      await prisma.files.create({
+        data: 
+        {
+          fileName: realFileName,
+          owner: username,
+          ownerUid: data.uid,
+          alias: (Alias.toString()),
+          embedAuthor: embedAuthor,
+          embedSiteName: embedSiteName,
+          embedTitle: embedTitle,
+          embedDesc: embedDesc,
+          embedColor: embedColor,
+          uploadDate: (Date.now().toString()),
+        },
+      });
+    } else {
+      
+    }
     return res.status(201).json({ url: url });
   //} catch(err) {
     return res.status(500).json({ error: "An unexpected error occurred" });
@@ -144,11 +149,12 @@ function randomString() {
 
 // invisible filenames
 function invisibleString() {
+  //const invisibleArray = ["U+200B", "U+200C"]
   const invisibleChars = "​‌";
+  //let invisibleFileName = invisibleArray.sort(() => .5 - Math.random()).slice(0,n)
   const randomArray = Array.from(
     { length: 20 },
-    () => invisibleChars[Math.floor(Math.random() * invisibleChars.length)]
-  );
+    () => invisibleChars[Math.floor(Math.random() * invisibleChars.length)]);
   let invisibleFileName = randomArray.join("");
   return invisibleFileName;
 }
@@ -156,7 +162,7 @@ function invisibleString() {
 
 // emoji filenames
 function emojiString() {
-  const emojiChars = "";
+  const emojiChars = "seks";
   const randomArray = Array.from(
     { length: 5 },
     () => emojiChars[Math.floor(Math.random() * emojiChars.length)]
@@ -167,23 +173,24 @@ function emojiString() {
 
 
 
-app.get("/:params", async (req, res) => {
+app.get("/u/:params", async (req, res) => {
   content = req.params.params;
+  console.log(content);
+  
   let data = await prisma.files.findFirst({
     where: {
-      alias: content,
+      alias: (content.toString()),
     },
   });
-  console.log(data)
   if (data) {
     res.send(`
     <head>
-        <meta name="theme-color" content="#ae34eb">
+        <meta name="theme-color" content="${data.embedColor}">
         <meta property="og:image" content="/content/${(data.fileName)}">
-        <meta property="og:title" content="69420.host">
-        <meta property="og:description" content="69420.host is the best">
+        <meta property="og:title" content="${data.embedTitle}}">
+        <meta property="og:description" content="${data.embedDesc}">
         <meta property="og:url" content="https://69420.host">
-        <meta property="og:site_name" content="69420.host">
+        <meta property="og:site_name" content="${data.embedSiteName}">
         <meta property="og:type" content="website">
         <meta property="twitter:card" content="summary_large_image">
     </head>
@@ -192,13 +199,14 @@ app.get("/:params", async (req, res) => {
           <div>
             <p>${(data.fileName)} | uploaded by ${(data.owner)}</p>
             <img src=/content/${(data.fileName)}>
+            <p>This image is hosted on 69420.host</p>
           </div>
         </cetner>
     </body>
     `)
-    return;;
+    return;
   }else{
-    res.send(`file not found!`)
+    return res.send(`file not found!`)
   }
 
 });
@@ -213,24 +221,9 @@ app.get("/:params", async (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-app.get("/lol/e", async (req, res) => {
-  const lol = "";
-  const tokenExist = await prisma.accounts.findFirst({
-    where: {
-      token: lol,
-    },
-  });
-  res.send(tokenExist);
+app.get("/test", async (req, res) => {
+  var input = '2122';
+  console.log(String.fromCodePoint(input));
 });
 
 app.use("/content", express.static(__dirname + "/contentfolder"));
