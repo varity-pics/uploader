@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model accounts {
+  uid            Int     @id @default(autoincrement())
+  username       String  @unique
+  invitedby      String
+  password       String
+  banned         String?
+  registrationip String
+  lastip         String
+  token          String
+  role           String
+  domain         String
+  embedAuthor    String?
+  embedColor     String?
+  embedDesc      String?
+  embedSiteName  String?
+  embedTitle     String?
+  fileNameMethod String
+}
+
+model invites {
+  id      Int    @id @default(autoincrement())
+  invite  String @unique
+  expires String
+  genby   String
+  used    Int?
+}
+
+model files {
+  fileName      String
+  owner         String  @id
+  ownerUid      Int
+  alias         String
+  embedAuthor   String?
+  embedColor    String?
+  embedDesc     String?
+  embedSiteName String?
+  embedTitle    String?
+}
