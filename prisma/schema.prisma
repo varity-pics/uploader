@@ -39,11 +39,12 @@ model files {
   fileName      String  @unique
   owner         String
   ownerUid      Int
-  alias         String 
+  alias         String
   embedAuthor   String?
   embedColor    String?
   embedDesc     String?
   embedSiteName String?
   embedTitle    String?
   uploadDate    String
+  Mimetype      String
 }
