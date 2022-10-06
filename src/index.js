@@ -7,7 +7,7 @@ const upload = multer({ dest: __dirname + "/temp" });
 const fs = require("fs");
 const express = require("express");
 const prisma = new db.PrismaClient();
-const port = 5000;
+const port = 80;
 const strlength = 5;
 const mysql = require("mysql2")
 var connection = mysql.createConnection({ host: "localhost", user: "root", password: "magicznysiurek213769420.hostlol", database: "69420"});
@@ -25,7 +25,7 @@ app.post("/", upload.single("69420"), async (req, res) => {
   // wypisuje nazwe oraz typ pliku
   try {
     const file = req.file
-    console.log(file.originalname, file.mimetype);
+    //console.log(file.originalname, file.mimetype);
     let token = req.headers.authorization;
     const data = await prisma.accounts.findFirst({
       where: {
@@ -33,13 +33,13 @@ app.post("/", upload.single("69420"), async (req, res) => {
       },
     });
     ////////res.send(tokenExist);
-    console.log(data);
+    //console.log(data);
     if (!data) {
       res.status(401).json({ error: "Your upload token invalid." });
       fsExtra.emptyDirSync(__dirname+"/temp");
       return;
     }
-    console.log("dupa")
+    //console.log("dupa")
     const banned = false;
 
     if (banned) {
@@ -50,10 +50,10 @@ app.post("/", upload.single("69420"), async (req, res) => {
     }
 
     //console.log(data); // i to juz jest prased json
+    const domain = "cool.wikomiks.space";
 
     const fileNameMethod = data.fileNameMethod;
     const username = data.username;
-    const domain = "localhost:5000";
     const embedAuthor = data.embedAuthor;
     const embedColor = data.embedColor;
     const embedDesc = data.embedDesc;
@@ -81,11 +81,11 @@ app.post("/", upload.single("69420"), async (req, res) => {
     // generowanie randomowego ciagu znakow
 
     
-    console.log(fileNameMethod);
+    //console.log(fileNameMethod);
     if (fileNameMethod === "normal") {
       var realFileName = randomString()+fileType;
       var Alias = realFileName
-      var url = ("http://" + domain + "/" + Alias)
+      var url = ("https://" + domain + "/" + Alias)
     }
     else if (fileNameMethod === "invisible") {
 
@@ -104,7 +104,7 @@ app.post("/", upload.single("69420"), async (req, res) => {
       var Alias = stringMain
       var realFileName = randomString();
       var realFileName = (realFileName+fileType)
-      var url = ("http://" + domain + "/" + string)
+      var url = ("https://" + domain + "/" + string)
     }
 
 
@@ -112,7 +112,7 @@ app.post("/", upload.single("69420"), async (req, res) => {
       var realFileName = randomString();
       var realFileName = (realFileName+fileType)
       var Alias = emojiString();
-      var url = ("http://" + domain + "/" + Alias)
+      var url = ("https://" + domain + "/" + Alias)
     }
     
 
@@ -177,21 +177,18 @@ app.get("/:params", async (req, res) => {
   try {
     content = req.params.params.toString();
     if (content.startsWith("​") || content.startsWith("‌")) {
-      console.log("started")
       var string2 = ""
       for (var i = 0; i < content.length; i++) {
         
         if (content.charAt(i) == "​") { string2=string2+"0"} // u+200b
         else if (content.charAt(i) == "‌") { string2=string2+"1"} // u+200c
-        console.log(content.charAt(i))
+        //console.log(content.charAt(i))
         //content = string2
       }
-      console.log(string2)
+      //console.log(string2)
       content = string2
     }
 
-    console.log(content, "content");
-  
     let data = await prisma.files.findFirst({
       where: 
       {
@@ -203,7 +200,7 @@ app.get("/:params", async (req, res) => {
       <head>
           <meta name="theme-color" content="${data.embedColor}">
           <meta property="og:image" content="/content/${(data.fileName)}">
-          <meta property="og:title" content="${data.embedTitle}}">
+          <meta property="og:title" content="${data.embedTitle}">
           <meta property="og:description" content="${data.embedDesc}">
           <meta property="og:url" content="https://69420.host">
           <meta property="og:site_name" content="${data.embedSiteName}">
@@ -213,12 +210,43 @@ app.get("/:params", async (req, res) => {
       <body>
         <center>
           <div>
-            <p>${(data.fileName)} | uploaded by ${(data.owner)} || upload number ${data.uploadId}</p>
+            <p>${(data.fileName)} and many other files are hosted on 69420.host</p>
             <img src=/content/${(data.fileName)}>
-            <p>This image is hosted on 69420.host</p>
           </div>
         </cetner>
-      </body> `)
+      </body>
+      <style>
+      @keyframes animatebackground {
+        from {
+        background-position-y: 0;
+        background-position-x: 0;
+      }
+      to {
+        background-position-y: 200rem;
+        background-position-x: 200rem;
+      }
+      }
+      body {
+        background-color: black!important;
+        background-image: url('https://i.imgur.com/fgbHD5v.png')!important;
+        background-size: 30rem!important;
+        color: white!important;
+        font-family: proxima-soft, sans-serif!important;
+        overflow-x: hidden!important;
+        margin: 0!important;
+        animation: animatebackground 100s infinite linear!important;
+      }
+      img {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        -webkit-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+        max-width: 65vw;
+        max-height: 65vh;
+        }
+      </style> 
+      `)
   }catch {
     return res.send("error")
   }
@@ -244,6 +272,8 @@ app.use(function (req, res, next) {
   res.removeHeader("X-Powered-By"); // usuwa xpoweredby express
   next();
 });
-// app.use((req, res, next) => {
-//   res.status(404).redirect("https://69420.host");
-// });
+
+
+app.use((req, res, next) => {
+  res.status(404).redirect("https://69420.host");
+});
