@@ -8,8 +8,6 @@ const fs = require("fs");
 const express = require("express");
 const prisma = new db.PrismaClient();
 const port = 80;
-const mysql = require("mysql2")
-var connection = mysql.createConnection({ host: "localhost", user: "root", password: "magicznysiurek213769420.hostlol", database: "69420"});
 const app = express();
 app.use(express.json());
 
@@ -34,15 +32,14 @@ app.post("/", upload.single("69420"), async (req, res) => {
       fsExtra.emptyDirSync(__dirname+"/temp");
       return;
     }
-    const banned = false;
 
-    if (banned) {
+    if (data.banned) {
       res.status(403);
       fsExtra.emptyDirSync(__dirname+"/temp");
-      return res.json({ error: `You are blacklisted for: <reason>` });
+      return res.json({ error: `You are blacklisted for: ${data.banned}` });
     }
-    const domain = "cool.wikomiks.space";
 
+    const domain = data.domain;
     const fileNameMethod = data.fileNameMethod;
     const username = data.username;
     const embedAuthor = data.embedAuthor;
@@ -89,17 +86,16 @@ app.post("/", upload.single("69420"), async (req, res) => {
       var url = ("https://" + domain + "/" + string)
     }
     
-    else if (fileNameMethod === "emoji") {
-      var realFileName = randomString();
-      var realFileName = (realFileName+fileType)
-      var Alias = emojiString();
-      var url = ("https://" + domain + "/" + Alias)
+    else if (fileNameMethod === "raw") {
+      var realFileName = randomString()+fileType;
+      var Alias = realFileName
+      var url = ("https://i.69420.host/content/" + Alias)
     }
     
     const oldPath = path.join(__dirname + "/temp/" + file.filename);
     const newPath = path.join(__dirname + "/contentfolder/" + realFileName);
     fs.rename(oldPath, newPath, () => {});
-    if (fileNameMethod === "normal" || fileNameMethod === "invisible"){
+    if (fileNameMethod === "normal" || fileNameMethod === "invisible" || fileNameMethod === "raw"){
       await prisma.files.create({
         data: 
         {
@@ -121,6 +117,7 @@ app.post("/", upload.single("69420"), async (req, res) => {
     }
     return res.status(201).json({ url: url });
   } catch(err) {
+    fs.unlink(oldPath = path.join(__dirname + "/temp/" + file.filename));
     return res.status(500).json({ error: "An unexpected error occurred" });
   }
 });
@@ -133,17 +130,6 @@ function randomString() {
   let realFileName = randomArray.join("");
   return realFileName;
 }
-// emoji filenames
-function emojiString() {
-  const emojiChars = "seks";
-  const randomArray = Array.from(
-    { length: 5 },
-    () => emojiChars[Math.floor(Math.random() * emojiChars.length)]
-  );
-  let emojiFileName = randomArray.join("");
-  return emojiFileName;
-}
-
 
 
 app.get("/:params", async (req, res) => {
@@ -193,7 +179,7 @@ app.get("/:params", async (req, res) => {
       href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300&display=swap"
       rel="stylesheet"
     />
-    <title>Document</title>
+    <title>${data.fileName}</title>
   </head>
   <body>
     <div class="content">
